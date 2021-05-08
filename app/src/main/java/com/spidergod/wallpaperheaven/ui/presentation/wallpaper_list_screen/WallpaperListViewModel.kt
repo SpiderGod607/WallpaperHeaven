@@ -3,6 +3,7 @@ package com.spidergod.wallpaperheaven.ui.presentation.wallpaper_list_screen
 import android.graphics.Bitmap
 import android.graphics.drawable.BitmapDrawable
 import android.graphics.drawable.Drawable
+import android.util.Log
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.graphics.Color
 import androidx.lifecycle.ViewModel
@@ -47,6 +48,7 @@ class WallpaperListViewModel @Inject constructor(
                     currentPage++
                     loadError.value = ""
                     isLoading.value = false
+                    Log.d("asd", "" + currentPage)
                 }
                 is Resource.Error -> {
                     loadError.value = result.message ?: "Unknown Error occurred"

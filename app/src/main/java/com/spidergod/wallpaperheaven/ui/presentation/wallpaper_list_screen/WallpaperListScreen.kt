@@ -1,13 +1,18 @@
 package com.spidergod.wallpaperheaven.ui.presentation.wallpaper_list_screen
 
 
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.GridCells
+import androidx.compose.foundation.lazy.LazyVerticalGrid
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.material.MaterialTheme
+import androidx.compose.material.Surface
 import androidx.compose.material.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -23,26 +28,35 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltNavGraphViewModel
 import androidx.navigation.NavController
+import androidx.navigation.compose.navigate
+import com.spidergod.wallpaperheaven.data.local.dto_to_entity.ParcelableConvertor
 import com.spidergod.wallpaperheaven.data.local.entity.WallpaperEntity
 import com.spidergod.wallpaperheaven.util.loadPicture
 
 
+@ExperimentalFoundationApi
 @Composable
 fun WallpaperListScreen(
     navController: NavController
 ) {
-    /* Surface(
-         color = MaterialTheme.colors.background,
-         modifier = Modifier.fillMaxSize()
-     ) {
-        *//* Column {
-            SearchBar()
-        }
-        Spacer(modifier = Modifier.height(16.dp))
-        WallpaperList(navController = navController)*//*
-    }*/
+    Surface(
+        color = MaterialTheme.colors.background,
+        modifier = Modifier
+            .fillMaxSize()
 
-    WallpaperList(navController = navController)
+    ) {
+
+        Column {
+            SearchBar(hint = "Search..")
+
+            Spacer(modifier = Modifier.height(16.dp))
+            WallpaperList(navController = navController)
+        }
+
+
+    }
+
+    // WallpaperList(navController = navController)
 }
 
 @Composable
@@ -90,6 +104,7 @@ fun SearchBar(
     }
 }
 
+@ExperimentalFoundationApi
 @Composable
 fun WallpaperList(
     navController: NavController,
@@ -108,25 +123,26 @@ fun WallpaperList(
     val isLoading by remember {
         viewModel.isLoading
     }
+    val itemCount = wallpaperList.size
 
-    LazyColumn(contentPadding = PaddingValues(10.dp)) {
-        val itemCount = if (wallpaperList.size % 2 == 0) {
-            wallpaperList.size / 2
-        } else {
-            wallpaperList.size / 2 + 1
-        }
+
+    LazyVerticalGrid(
+        contentPadding = PaddingValues(10.dp),
+        cells = GridCells.Fixed(2)
+    ) {
+
         items(itemCount) {
             if (it >= itemCount - 1 && !endReached) {
                 viewModel.loadWallpaperPagination()
             }
-            WallpaperRow(
-                rowIndex = it,
-                wallpaperList = wallpaperList,
-                navController = navController
+            WallpaperListItem(
+                wallpaper = wallpaperList[it], navController = navController,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(10.dp)
             )
         }
     }
-
 }
 
 
@@ -176,7 +192,14 @@ fun WallpaperListItem(
         modifier = modifier
             .shadow(5.dp, RoundedCornerShape(10))
             .clip(RoundedCornerShape(10.dp))
-    ) {
+            .clickable {
+                gotoWallpaperDetail(
+                    wallpaper = wallpaper,
+                    navController = navController
+                )
+            },
+
+        ) {
         loadPicture(
             wallpaper.url,
             wallpaper.dimension_x,
@@ -194,3 +217,10 @@ fun WallpaperListItem(
 
 }
 
+fun gotoWallpaperDetail(wallpaper: WallpaperEntity, navController: NavController) {
+    navController.currentBackStackEntry?.arguments?.putParcelable(
+        "wallpaper",
+        ParcelableConvertor.wallpaperEntityToParcelable(wallpaperEntity = wallpaper)
+    )
+    navController.navigate("wallpaper_detail")
+}

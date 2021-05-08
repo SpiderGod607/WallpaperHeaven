@@ -1,12 +1,14 @@
 package com.spidergod.wallpaperheaven.data.local.entity
 
 import androidx.room.ColumnInfo
+import androidx.room.Entity
 import androidx.room.PrimaryKey
 
 
+@Entity(tableName = "wallpaperTable")
 data class WallpaperEntity(
     @ColumnInfo(name = "id")
-    @PrimaryKey(autoGenerate = true)
+    @PrimaryKey(autoGenerate = false)
     val id: String,
     @ColumnInfo(name = "url")
     val url: String,
@@ -30,6 +32,6 @@ data class WallpaperEntity(
     val cacheTag: String,
     @ColumnInfo(name = "color")
     val color: String,
-    @ColumnInfo(name = "color")
+    @ColumnInfo(name = "urlHigh")
     val urlHigh: String
 )

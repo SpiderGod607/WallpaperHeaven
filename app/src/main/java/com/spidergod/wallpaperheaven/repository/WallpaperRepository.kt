@@ -35,4 +35,13 @@ class WallpaperRepository @Inject constructor(
         return Resource.Success(response)
     }
 
+    suspend fun getSimilarWallpaper(wallpaperId: String): Resource<WallpaperListReponseDto> {
+        val respose = try {
+            wallpaperApi.getSimilarWallpaper("like:$wallpaperId")
+        } catch (e: Exception) {
+            return Resource.Error("${e.localizedMessage}")
+        }
+        return Resource.Success(respose)
+    }
+
 }

@@ -16,4 +16,10 @@ interface WallpaperApi {
         @Query("page") page: Int
     ): WallpaperListReponseDto
 
+    @GET("search")
+    suspend fun getSimilarWallpaper(
+        @Query("q") query: String
+    ): WallpaperListReponseDto
+
+
 }
