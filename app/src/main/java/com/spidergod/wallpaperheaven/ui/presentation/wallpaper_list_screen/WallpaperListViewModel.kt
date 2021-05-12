@@ -28,35 +28,79 @@ class WallpaperListViewModel @Inject constructor(
     val isLoading = mutableStateOf(false)
     val endReached = mutableStateOf(false)
 
-    init {
-        loadWallpaperPagination()
-    }
 
-    fun loadWallpaperPagination() {
-        viewModelScope.launch {
-            isLoading.value = true
-            val result = repository.getWallpaperList(page = currentPage)
+    fun loadWallpaperPagination(
+        query: String = "",
+        categories: String = "111",
+        purity: String = "100",
+        topRange: String = "1M",
+        sorting: String = "toplist",
+        order: String = "desc",
+    ) {
+        if (!isLoading.value) {
+            viewModelScope.launch {
+                isLoading.value = true
+                val result = repository.getWallpaperList(
+                    categories = categories,
+                    purity = purity,
+                    topRange = topRange,
+                    sorting = sorting,
+                    order = order,
+                    query = query, page = currentPage
+                )
 
-            when (result) {
-                is Resource.Success -> {
-                    endReached.value = currentPage >= result.data?.meta?.lastPage!!
-                    wallpaperList.value += WallpaperListDtoToWallpaperEntity.wallpaperListToWallpaperList(
-                        result.data,
-                        currentPage,
-                        "top"
-                    )
-                    currentPage++
-                    loadError.value = ""
-                    isLoading.value = false
-                    Log.d("asd", "" + currentPage)
-                }
-                is Resource.Error -> {
-                    loadError.value = result.message ?: "Unknown Error occurred"
-                    isLoading.value = false
+                when (result) {
+                    is Resource.Success -> {
+                        endReached.value = currentPage >= result.data?.meta?.lastPage!!
+                        wallpaperList.value += WallpaperListDtoToWallpaperEntity.wallpaperListToWallpaperList(
+                            result.data,
+                            currentPage,
+                            "top"
+                        )
+                        currentPage++
+                        loadError.value = ""
+                        isLoading.value = false
+                        Log.d("asd", "" + currentPage)
+                    }
+                    is Resource.Error -> {
+                        loadError.value = result.message ?: "Unknown Error occurred"
+                        isLoading.value = false
+                    }
                 }
             }
         }
     }
+
+    val searchQuery = mutableStateOf("")
+    var firstSearch = true
+
+
+    //search filter
+    val showSearchFilterDialog = mutableStateOf(false)
+    val currentSelectedCategories = mutableStateOf("111")
+    val sortBy = mutableStateOf("relevance")
+    val orderBy = mutableStateOf("desc")
+
+    fun doSearch() {
+
+        if (currentSelectedCategories.value == "000") {
+            currentSelectedCategories.value = "111"
+        }
+
+        loadWallpaperPagination(
+            query = searchQuery.value, sorting = sortBy.value,
+            categories = currentSelectedCategories.value,
+            order = orderBy.value
+        )
+    }
+
+    fun newQuery() {
+        firstSearch = false
+        wallpaperList.value = arrayListOf()
+        currentPage = 1
+        doSearch()
+    }
+
 
     fun calcDominantColor(drawable: Drawable, onFinish: (Color) -> Unit) {
         val bmp = (drawable as BitmapDrawable).bitmap.copy(Bitmap.Config.ARGB_8888, true)
@@ -67,5 +111,6 @@ class WallpaperListViewModel @Inject constructor(
             }
         }
     }
+
 
 }

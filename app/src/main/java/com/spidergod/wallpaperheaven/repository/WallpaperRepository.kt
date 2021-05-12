@@ -11,6 +11,7 @@ class WallpaperRepository @Inject constructor(
     private val wallpaperApi: WallpaperApi
 ) {
     suspend fun getWallpaperList(
+        query: String = "",
         categories: String = "111",
         purity: String = "100",
         topRange: String = "1M",
@@ -26,7 +27,8 @@ class WallpaperRepository @Inject constructor(
                 topRange = topRange,
                 sorting = sorting,
                 order = order,
-                page = page
+                page = page,
+                query = query
             )
 
         } catch (e: Exception) {

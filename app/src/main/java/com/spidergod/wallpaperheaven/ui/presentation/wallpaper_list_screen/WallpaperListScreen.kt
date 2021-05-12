@@ -1,6 +1,8 @@
 package com.spidergod.wallpaperheaven.ui.presentation.wallpaper_list_screen
 
 
+import androidx.compose.animation.ExperimentalAnimationApi
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -11,6 +13,8 @@ import androidx.compose.foundation.lazy.LazyVerticalGrid
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Surface
 import androidx.compose.material.Text
@@ -21,95 +25,55 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.focus.FocusState
 import androidx.compose.ui.focus.onFocusChanged
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
+import androidx.compose.ui.input.nestedscroll.NestedScrollSource
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltNavGraphViewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.navigate
+import com.spidergod.wallpaperheaven.R
 import com.spidergod.wallpaperheaven.data.local.dto_to_entity.ParcelableConvertor
 import com.spidergod.wallpaperheaven.data.local.entity.WallpaperEntity
+import com.spidergod.wallpaperheaven.ui.presentation.common.WallpaperList
 import com.spidergod.wallpaperheaven.util.loadPicture
+import kotlin.math.roundToInt
 
 
+@ExperimentalAnimationApi
 @ExperimentalFoundationApi
 @Composable
 fun WallpaperListScreen(
-    navController: NavController
-) {
-    Surface(
-        color = MaterialTheme.colors.background,
-        modifier = Modifier
-            .fillMaxSize()
-
-    ) {
-
-        Column {
-            SearchBar(hint = "Search..")
-
-            Spacer(modifier = Modifier.height(16.dp))
-            WallpaperList(navController = navController)
-        }
-
-
-    }
-
-    // WallpaperList(navController = navController)
-}
-
-@Composable
-fun SearchBar(
-    modifier: Modifier = Modifier,
-    hint: String = "",
-    onSearch: (String) -> Unit = {}
-) {
-
-    var text by remember {
-        mutableStateOf("")
-    }
-    var isHintDisplayed by remember {
-        mutableStateOf(hint != "")
-    }
-
-    Box(modifier = modifier) {
-        BasicTextField(
-            value = text,
-            onValueChange = {
-                text = it
-                //onSearch(it)
-            },
-            maxLines = 1,
-            singleLine = true,
-            textStyle = TextStyle(color = Color.Black),
-            modifier = Modifier
-                .fillMaxWidth()
-                .shadow(5.dp, CircleShape)
-                .background(Color.White, CircleShape)
-                .padding(horizontal = 20.dp, vertical = 12.dp)
-                .onFocusChanged {
-                    isHintDisplayed = it != FocusState.Active
-                }
-        )
-
-        if (isHintDisplayed) {
-            Text(
-                text = hint,
-                color = Color.LightGray,
-                modifier = Modifier.padding(horizontal = 20.dp, vertical = 12.dp)
-            )
-        }
-
-    }
-}
-
-@ExperimentalFoundationApi
-@Composable
-fun WallpaperList(
     navController: NavController,
     viewModel: WallpaperListViewModel = hiltNavGraphViewModel()
 ) {
+    val toolbarHeight = 220.dp
+    val toolbarHeightPx = with(LocalDensity.current) { toolbarHeight.roundToPx().toFloat() }
+    val toolbarOffsetHeightPx = remember { mutableStateOf(0f) }
+
+    val nestedScrollConnection = remember {
+        object : NestedScrollConnection {
+            override fun onPreScroll(available: Offset, source: NestedScrollSource): Offset {
+
+                val delta = available.y
+                val newOffset = toolbarOffsetHeightPx.value + delta
+                toolbarOffsetHeightPx.value = newOffset.coerceIn(-toolbarHeightPx, 0f)
+                return Offset.Zero
+            }
+        }
+    }
+
     val wallpaperList by remember {
         viewModel.wallpaperList
     }
@@ -123,99 +87,137 @@ fun WallpaperList(
     val isLoading by remember {
         viewModel.isLoading
     }
-    val itemCount = wallpaperList.size
 
+    if (!isLoading && loadError.isEmpty() && !endReached && wallpaperList.isEmpty()) {
+        viewModel.loadWallpaperPagination()
+    }
 
-    LazyVerticalGrid(
-        contentPadding = PaddingValues(10.dp),
-        cells = GridCells.Fixed(2)
+    Surface(
+        color = MaterialTheme.colors.background,
+        modifier = Modifier
+            .fillMaxSize()
+
     ) {
 
-        items(itemCount) {
-            if (it >= itemCount - 1 && !endReached) {
-                viewModel.loadWallpaperPagination()
-            }
-            WallpaperListItem(
-                wallpaper = wallpaperList[it], navController = navController,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(10.dp)
-            )
-        }
-    }
-}
+        Box(
+            Modifier
+                .fillMaxSize()
+                .nestedScroll(nestedScrollConnection)
+        ) {
 
-
-@Composable
-fun WallpaperRow(
-    rowIndex: Int,
-    wallpaperList: List<WallpaperEntity>,
-    navController: NavController
-) {
-
-    Column {
-        Row {
-            WallpaperListItem(
-                wallpaper = wallpaperList[rowIndex * 2],
+            WallpaperList(
                 navController = navController,
-                modifier = Modifier.weight(1f)
+                topPadding = toolbarHeight,
+                wallpaperList = wallpaperList,
+                endReached = endReached,
+                loadError = loadError,
+                isLoading = isLoading,
+                pagingFunction = {
+                    viewModel.loadWallpaperPagination()
+                }
             )
-            Spacer(modifier = Modifier.width(16.dp))
-            if (wallpaperList.size >= rowIndex * 2 + 2) {
-                WallpaperListItem(
-                    wallpaper = wallpaperList[rowIndex * 2 + 1],
-                    navController = navController,
-                    modifier = Modifier.weight(1f)
-                )
-            } else {
-                Spacer(modifier = Modifier.weight(1f))
-            }
-            Spacer(modifier = Modifier.height(16.dp))
+
+            SearchBarWithImageBackground(
+                navController,
+                modifier = Modifier
+                    .height(toolbarHeight)
+                    .offset {
+                        IntOffset(x = 0, y = toolbarOffsetHeightPx.value.roundToInt())
+                    }
+            )
         }
     }
+    // WallpaperList(navController = navController)
 }
 
-
 @Composable
-fun WallpaperListItem(
-    wallpaper: WallpaperEntity,
+fun SearchBarWithImageBackground(
     navController: NavController,
-    modifier: Modifier = Modifier,
+    modifier: Modifier,
     viewModel: WallpaperListViewModel = hiltNavGraphViewModel()
 ) {
-    var defaultDominantColor by remember {
-        mutableStateOf(android.graphics.Color.parseColor(wallpaper.color))
-    }
 
     Box(
-        contentAlignment = Alignment.Center,
         modifier = modifier
-            .shadow(5.dp, RoundedCornerShape(10))
-            .clip(RoundedCornerShape(10.dp))
-            .clickable {
-                gotoWallpaperDetail(
-                    wallpaper = wallpaper,
-                    navController = navController
-                )
-            },
+            .fillMaxWidth()
 
-        ) {
-        loadPicture(
-            wallpaper.url,
-            wallpaper.dimension_x,
-            wallpaper.dimension_y,
-            defaultDominantColor
-        )?.let {
-            Image(
-                bitmap = it.asImageBitmap(), contentDescription = "wallpaper",
-                modifier = Modifier.fillMaxWidth(),
-                contentScale = ContentScale.FillWidth
-            )
-        }
+    ) {
+        Image(
+            painter = painterResource(id = R.drawable.search_back),
+            contentDescription = "Search background",
+            modifier = Modifier.fillMaxSize(),
+            contentScale = ContentScale.Crop
+        )
+
+        SearchBar(
+            hint = "Search..",
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .padding(horizontal = 15.dp, vertical = 20.dp),
+            onSearchFunction = { query ->
+                goToWallpaperSearchScreen(query = query, navController = navController)
+            }
+        )
+
     }
 
 
 }
+
+
+@Composable
+fun SearchBar(
+    modifier: Modifier = Modifier,
+    hint: String = "",
+    onSearchFunction: (String) -> Unit = {},
+    viewModel: WallpaperListViewModel = hiltNavGraphViewModel()
+) {
+
+    var isHintDisplayed by remember {
+        mutableStateOf(hint != "")
+    }
+    val alpha: Float by animateFloatAsState(targetValue = if (isHintDisplayed) 0.5f else 1f)
+
+    Box(modifier = modifier.graphicsLayer(alpha = alpha)) {
+        BasicTextField(
+            value = viewModel.searchQuery.value,
+            onValueChange = {
+                viewModel.searchQuery.value = it
+                //onSearch(it)
+            },
+            maxLines = 1,
+            singleLine = true,
+            textStyle = TextStyle(color = Color.Black),
+            modifier = Modifier
+                .fillMaxWidth()
+                .shadow(5.dp, CircleShape)
+                .background(Color.White, CircleShape)
+                .padding(horizontal = 20.dp, vertical = 12.dp)
+                .onFocusChanged {
+                    isHintDisplayed = it != FocusState.Active
+                },
+            keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
+            keyboardActions = KeyboardActions(
+                onSearch = {
+                    onSearchFunction(viewModel.searchQuery.value)
+                }
+            )
+
+        )
+
+        if (isHintDisplayed && viewModel.searchQuery.value.isEmpty()) {
+            Text(
+                text = hint,
+                color = Color.LightGray,
+                modifier = Modifier
+                    .padding(horizontal = 20.dp, vertical = 12.dp)
+
+            )
+        }
+
+    }
+}
+
 
 fun gotoWallpaperDetail(wallpaper: WallpaperEntity, navController: NavController) {
     navController.currentBackStackEntry?.arguments?.putParcelable(
@@ -223,4 +225,8 @@ fun gotoWallpaperDetail(wallpaper: WallpaperEntity, navController: NavController
         ParcelableConvertor.wallpaperEntityToParcelable(wallpaperEntity = wallpaper)
     )
     navController.navigate("wallpaper_detail")
+}
+
+fun goToWallpaperSearchScreen(query: String, navController: NavController) {
+    navController.navigate("wallpaper_search_screen/$query")
 }

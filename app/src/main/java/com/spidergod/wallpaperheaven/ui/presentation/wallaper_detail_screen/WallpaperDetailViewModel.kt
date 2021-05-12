@@ -1,6 +1,7 @@
 package com.spidergod.wallpaperheaven.ui.presentation.wallaper_detail_screen
 
 import android.util.Log
+import androidx.compose.foundation.ScrollState
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.graphics.Color
@@ -25,6 +26,7 @@ class WallpaperDetailViewModel @Inject constructor(val wallpaperRepository: Wall
             Color(android.graphics.Color.BLACK)
         )
     )
+
 
     fun getSimilarWallpaper(wallpaperEntity: WallpaperEntity): MutableState<List<WallpaperEntity>> {
 

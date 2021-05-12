@@ -8,6 +8,7 @@ interface WallpaperApi {
 
     @GET("search")
     suspend fun getWallpaperList(
+        @Query("q") query: String = "",
         @Query("categories") categories: String = "111",
         @Query("purity") purity: String = "110",
         @Query("topRange") topRange: String = "1M",
