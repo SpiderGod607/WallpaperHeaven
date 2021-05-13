@@ -27,8 +27,8 @@ import com.spidergod.wallpaperheaven.R
 import com.spidergod.wallpaperheaven.ui.presentation.common.FilterChips
 import com.spidergod.wallpaperheaven.ui.presentation.common.ThreeChipRow
 import com.spidergod.wallpaperheaven.ui.presentation.common.TwoChipRow
+import com.spidergod.wallpaperheaven.ui.presentation.common.WallpaperList
 import com.spidergod.wallpaperheaven.ui.presentation.wallpaper_list_screen.SearchBar
-import com.spidergod.wallpaperheaven.ui.presentation.wallpaper_list_screen.WallpaperList
 import com.spidergod.wallpaperheaven.ui.presentation.wallpaper_list_screen.WallpaperListViewModel
 
 

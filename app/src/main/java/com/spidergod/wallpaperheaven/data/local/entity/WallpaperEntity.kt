@@ -33,5 +33,7 @@ data class WallpaperEntity(
     @ColumnInfo(name = "color")
     val color: String,
     @ColumnInfo(name = "urlHigh")
-    val urlHigh: String
+    val urlHigh: String,
+    @ColumnInfo(name = "urlShort")
+    val urlShort: String
 )

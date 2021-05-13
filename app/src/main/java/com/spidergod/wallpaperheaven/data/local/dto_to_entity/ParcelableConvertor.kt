@@ -22,12 +22,13 @@ class ParcelableConvertor {
                     page = page,
                     cacheTag = cacheTag,
                     color = color,
-                    urlHigh = urlHigh
+                    urlHigh = urlHigh,
+                    urlShort = urlShort
                 )
             }
         }
 
-        fun wallpaperParcelableToEntity(wallpaperParcelable: WallpaperParcelable):WallpaperEntity {
+        fun wallpaperParcelableToEntity(wallpaperParcelable: WallpaperParcelable): WallpaperEntity {
             return wallpaperParcelable.run {
                 WallpaperEntity(
                     id = id,
@@ -42,7 +43,8 @@ class ParcelableConvertor {
                     page = page,
                     cacheTag = cacheTag,
                     color = color,
-                    urlHigh = urlHigh
+                    urlHigh = urlHigh,
+                    urlShort = urlShort
                 )
             }
         }

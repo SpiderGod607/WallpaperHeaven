@@ -1,7 +1,6 @@
 package com.spidergod.wallpaperheaven.ui.presentation.wallaper_detail_screen
 
 import android.util.Log
-import androidx.compose.foundation.ScrollState
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.graphics.Color
@@ -11,12 +10,16 @@ import com.spidergod.wallpaperheaven.data.local.dto_to_entity.WallpaperListDtoTo
 import com.spidergod.wallpaperheaven.data.local.entity.WallpaperEntity
 import com.spidergod.wallpaperheaven.repository.WallpaperRepository
 import com.spidergod.wallpaperheaven.util.Resource
+import com.spidergod.wallpaperheaven.util.SetWallpaperUtil
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
-class WallpaperDetailViewModel @Inject constructor(val wallpaperRepository: WallpaperRepository) :
+class WallpaperDetailViewModel @Inject constructor(
+    val wallpaperRepository: WallpaperRepository,
+    val setWallpaperUtil: SetWallpaperUtil
+) :
     ViewModel() {
     val listOfSimilarWallpaper = mutableStateOf<List<WallpaperEntity>>(mutableListOf())
     val isError = mutableStateOf("")
@@ -26,6 +29,8 @@ class WallpaperDetailViewModel @Inject constructor(val wallpaperRepository: Wall
             Color(android.graphics.Color.BLACK)
         )
     )
+
+    var currentSelectedWallpaper: WallpaperEntity? = null
 
 
     fun getSimilarWallpaper(wallpaperEntity: WallpaperEntity): MutableState<List<WallpaperEntity>> {
@@ -67,5 +72,23 @@ class WallpaperDetailViewModel @Inject constructor(val wallpaperRepository: Wall
         return listOfSimilarWallpaper
     }
 
+
+    val setWallpaperMessage = mutableStateOf("")
+    val showStackBar = mutableStateOf(false)
+    fun setWallpaper() {
+        viewModelScope.launch() {
+            setWallpaperMessage.value = "Setting Wallpaper please wait.."
+            showStackBar.value = true
+            val setRes =
+                currentSelectedWallpaper?.urlHigh?.let { setWallpaperUtil.setWallpaper(it) }
+            if (setRes == true) {
+                setWallpaperMessage.value = "Wallpaper has been set"
+            } else {
+                setWallpaperMessage.value = "Wallpaper has not been set"
+            }
+            showStackBar.value = false
+        }
+
+    }
 
 }

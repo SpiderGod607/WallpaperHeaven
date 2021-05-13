@@ -26,7 +26,8 @@ class WallpaperListDtoToWallpaperEntity {
                     page = page,
                     cacheTag = cacheTag,
                     color = it.colors?.get(0) ?: "#FFFFFF",
-                    url = it.thumbs?.original ?: "sdf"
+                    url = it.thumbs?.original ?: "sdf",
+                    urlShort = it.shortUrl ?: "sdfs"
                 )
             }
 

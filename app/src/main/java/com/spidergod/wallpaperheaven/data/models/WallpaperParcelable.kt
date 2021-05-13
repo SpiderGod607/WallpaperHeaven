@@ -18,5 +18,6 @@ class WallpaperParcelable(
     val page: Int,
     val cacheTag: String,
     val color: String,
-    val urlHigh: String
+    val urlHigh: String,
+    val urlShort:String
 ) : Parcelable
