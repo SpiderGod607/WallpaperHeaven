@@ -34,10 +34,21 @@ fun NoInternetAnimation(modifier: Modifier) {
     )
 }
 
-
 @Composable
 fun WaveLoading(modifier: Modifier) {
     val animationSpec = remember { LottieAnimationSpec.RawRes(R.raw.wave_loading) }
+    val animationState =
+        rememberLottieAnimationState(autoPlay = true, repeatCount = Integer.MAX_VALUE)
+    LottieAnimation(
+        spec = animationSpec,
+        animationState = animationState,
+        modifier = modifier
+    )
+}
+
+@Composable
+fun Ghost(modifier: Modifier) {
+    val animationSpec = remember { LottieAnimationSpec.RawRes(R.raw.astronaut) }
     val animationState =
         rememberLottieAnimationState(autoPlay = true, repeatCount = Integer.MAX_VALUE)
     LottieAnimation(
