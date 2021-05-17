@@ -28,7 +28,6 @@ class WallpaperListViewModel @Inject constructor(
     val isLoading = mutableStateOf(false)
     val endReached = mutableStateOf(false)
 
-
     fun loadWallpaperPagination(
         query: String = "",
         categories: String = "111",
@@ -82,7 +81,6 @@ class WallpaperListViewModel @Inject constructor(
     val orderBy = mutableStateOf("desc")
 
     fun doSearch() {
-
         if (currentSelectedCategories.value == "000") {
             currentSelectedCategories.value = "111"
         }
@@ -100,7 +98,6 @@ class WallpaperListViewModel @Inject constructor(
         currentPage = 1
         doSearch()
     }
-
 
     fun calcDominantColor(drawable: Drawable, onFinish: (Color) -> Unit) {
         val bmp = (drawable as BitmapDrawable).bitmap.copy(Bitmap.Config.ARGB_8888, true)

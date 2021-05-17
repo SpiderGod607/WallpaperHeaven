@@ -1,5 +1,8 @@
 package com.spidergod.wallpaperheaven.repository
 
+import androidx.lifecycle.LiveData
+import com.spidergod.wallpaperheaven.data.local.Database.WallpaperDatabase
+import com.spidergod.wallpaperheaven.data.local.entity.WallpaperEntity
 import com.spidergod.wallpaperheaven.data.remote.api.WallpaperApi
 import com.spidergod.wallpaperheaven.data.remote.response_models.wallpaper_list_model_response.WallpaperListReponseDto
 import com.spidergod.wallpaperheaven.util.Resource
@@ -8,8 +11,11 @@ import javax.inject.Inject
 
 @ActivityScoped
 class WallpaperRepository @Inject constructor(
-    private val wallpaperApi: WallpaperApi
+    private val wallpaperApi: WallpaperApi,
+    private val database: WallpaperDatabase
 ) {
+    val dao = database.wallpaperFavDao()
+
     suspend fun getWallpaperList(
         query: String = "",
         categories: String = "111",
@@ -46,4 +52,19 @@ class WallpaperRepository @Inject constructor(
         return Resource.Success(respose)
     }
 
+    fun getAllFavLIstNames(): LiveData<List<String>> {
+        return dao.getAllFavNames()
+    }
+
+    suspend fun addToFav(wallpaperEntity: WallpaperEntity) {
+        dao.insertIntoFav(wallpaperEntity = wallpaperEntity)
+    }
+
+    suspend fun removeFromFav(wallpaperEntity: WallpaperEntity) {
+        dao.removeFav(wallpaperEntity = wallpaperEntity)
+    }
+
+    fun getAllWallpaperFav(): LiveData<List<WallpaperEntity>> {
+        return dao.getAllWallpaper()
+    }
 }

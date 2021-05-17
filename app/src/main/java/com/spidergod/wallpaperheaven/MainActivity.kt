@@ -13,9 +13,13 @@ import androidx.navigation.compose.rememberNavController
 import com.spidergod.wallpaperheaven.data.local.dto_to_entity.ParcelableConvertor
 import com.spidergod.wallpaperheaven.data.models.WallpaperParcelable
 import com.spidergod.wallpaperheaven.ui.presentation.wallaper_detail_screen.WallpaperDetailScreen
+import com.spidergod.wallpaperheaven.ui.presentation.wallpaper_favourite_screen.FavouriteWallpaperScreen
 import com.spidergod.wallpaperheaven.ui.presentation.wallpaper_list_screen.WallpaperListScreen
+import com.spidergod.wallpaperheaven.ui.presentation.wallpapr_newst.NewestWallpaper
 import com.spidergod.wallpaperheaven.ui.presentation.wapaper_search_screen.WallpaperSearchScreen
 import com.spidergod.wallpaperheaven.ui.theme.WallpaperHeavenTheme
+import com.spidergod.wallpaperheaven.util.Constants.FAVOURITE
+import com.spidergod.wallpaperheaven.util.Constants.NEWEST
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
@@ -56,10 +60,16 @@ class MainActivity : ComponentActivity() {
                                 )
                             }
                     }
+                    composable(
+                        FAVOURITE,
+                    ) {
+                        FavouriteWallpaperScreen(navController = navController)
+                    }
+                    composable(NEWEST) {
+                        NewestWallpaper(navController = navController)
+                    }
                 }
             }
         }
     }
 }
-
-

@@ -6,28 +6,23 @@ import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.GridCells
-import androidx.compose.foundation.lazy.LazyVerticalGrid
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.MaterialTheme
+import androidx.compose.material.Scaffold
 import androidx.compose.material.Surface
 import androidx.compose.material.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.focus.FocusState
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
 import androidx.compose.ui.input.nestedscroll.NestedScrollSource
@@ -37,7 +32,6 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.input.ImeAction
-import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltNavGraphViewModel
@@ -46,8 +40,11 @@ import androidx.navigation.compose.navigate
 import com.spidergod.wallpaperheaven.R
 import com.spidergod.wallpaperheaven.data.local.dto_to_entity.ParcelableConvertor
 import com.spidergod.wallpaperheaven.data.local.entity.WallpaperEntity
+import com.spidergod.wallpaperheaven.ui.presentation.common.NoInternetAnimation
+import com.spidergod.wallpaperheaven.ui.presentation.common.PaperPlaneLoading
+import com.spidergod.wallpaperheaven.ui.presentation.common.SystemBarColor
 import com.spidergod.wallpaperheaven.ui.presentation.common.WallpaperList
-import com.spidergod.wallpaperheaven.util.loadPicture
+import com.spidergod.wallpaperheaven.ui.presentation.common.bottomnav.BottomNav
 import kotlin.math.roundToInt
 
 
@@ -61,6 +58,8 @@ fun WallpaperListScreen(
     val toolbarHeight = 220.dp
     val toolbarHeightPx = with(LocalDensity.current) { toolbarHeight.roundToPx().toFloat() }
     val toolbarOffsetHeightPx = remember { mutableStateOf(0f) }
+
+    SystemBarColor(color = MaterialTheme.colors.primary)
 
     val nestedScrollConnection = remember {
         object : NestedScrollConnection {
@@ -81,9 +80,11 @@ fun WallpaperListScreen(
     val endReached by remember {
         viewModel.endReached
     }
+
     val loadError by remember {
         viewModel.loadError
     }
+
     val isLoading by remember {
         viewModel.isLoading
     }
@@ -92,42 +93,54 @@ fun WallpaperListScreen(
         viewModel.loadWallpaperPagination()
     }
 
-    Surface(
-        color = MaterialTheme.colors.background,
-        modifier = Modifier
-            .fillMaxSize()
-
-    ) {
-
-        Box(
-            Modifier
-                .fillMaxSize()
-                .nestedScroll(nestedScrollConnection)
-        ) {
-
-            WallpaperList(
-                navController = navController,
-                topPadding = toolbarHeight,
-                wallpaperList = wallpaperList,
-                endReached = endReached,
-                loadError = loadError,
-                isLoading = isLoading,
-                pagingFunction = {
-                    viewModel.loadWallpaperPagination()
-                }
-            )
-
-            SearchBarWithImageBackground(
-                navController,
+    Scaffold(
+        content = { innerPadding ->
+            Surface(
+                color = MaterialTheme.colors.secondary,
                 modifier = Modifier
-                    .height(toolbarHeight)
-                    .offset {
-                        IntOffset(x = 0, y = toolbarOffsetHeightPx.value.roundToInt())
-                    }
-            )
+                    .fillMaxSize()
+                    .padding(innerPadding)
+            ) {
+                Box(
+                    Modifier
+                        .fillMaxSize()
+                        .nestedScroll(nestedScrollConnection)
+                ) {
+
+                    WallpaperList(
+                        navController = navController,
+                        topPadding = toolbarHeight,
+                        wallpaperList = wallpaperList,
+                        endReached = endReached,
+                        loadError = loadError,
+                        isLoading = isLoading,
+                        pagingFunction = {
+                            viewModel.loadWallpaperPagination()
+                        }
+                    )
+
+                    SearchBarWithImageBackground(
+                        navController,
+                        modifier = Modifier
+                            .height(toolbarHeight)
+                            .offset {
+                                IntOffset(x = 0, y = toolbarOffsetHeightPx.value.roundToInt())
+                            }
+                    )
+                }
+                if (wallpaperList.isEmpty() && isLoading) {
+                    PaperPlaneLoading(modifier = Modifier)
+                }
+
+                if (!isLoading && wallpaperList.isEmpty() && loadError.isNotEmpty()) {
+                    NoInternetAnimation(modifier = Modifier.padding(top = 25.dp))
+                }
+            }
+        },
+        bottomBar = {
+            BottomNav(navController)
         }
-    }
-    // WallpaperList(navController = navController)
+    )
 }
 
 @Composable
@@ -136,7 +149,6 @@ fun SearchBarWithImageBackground(
     modifier: Modifier,
     viewModel: WallpaperListViewModel = hiltNavGraphViewModel()
 ) {
-
     Box(
         modifier = modifier
             .fillMaxWidth()
@@ -158,10 +170,7 @@ fun SearchBarWithImageBackground(
                 goToWallpaperSearchScreen(query = query, navController = navController)
             }
         )
-
     }
-
-
 }
 
 
@@ -176,6 +185,7 @@ fun SearchBar(
     var isHintDisplayed by remember {
         mutableStateOf(hint != "")
     }
+
     val alpha: Float by animateFloatAsState(targetValue = if (isHintDisplayed) 0.5f else 1f)
 
     Box(modifier = modifier.graphicsLayer(alpha = alpha)) {
@@ -183,7 +193,6 @@ fun SearchBar(
             value = viewModel.searchQuery.value,
             onValueChange = {
                 viewModel.searchQuery.value = it
-                //onSearch(it)
             },
             maxLines = 1,
             singleLine = true,
@@ -202,7 +211,6 @@ fun SearchBar(
                     onSearchFunction(viewModel.searchQuery.value)
                 }
             )
-
         )
 
         if (isHintDisplayed && viewModel.searchQuery.value.isEmpty()) {
@@ -214,10 +222,8 @@ fun SearchBar(
 
             )
         }
-
     }
 }
-
 
 fun gotoWallpaperDetail(wallpaper: WallpaperEntity, navController: NavController) {
     navController.currentBackStackEntry?.arguments?.putParcelable(

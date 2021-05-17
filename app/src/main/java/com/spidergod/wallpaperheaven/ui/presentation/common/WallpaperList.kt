@@ -50,8 +50,24 @@ fun WallpaperList(
                 wallpaper = wallpaperList[it], navController = navController,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(10.dp)
+                    .padding(5.dp)
             )
+        }
+        if (wallpaperList.isNotEmpty() && isLoading) {
+            item {
+                WaveLoading(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(100.dp)
+                )
+            }
+            item {
+                WaveLoading(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(100.dp)
+                )
+            }
         }
     }
 }
@@ -92,5 +108,4 @@ fun WallpaperListItem(
             )
         }
     }
-
 }

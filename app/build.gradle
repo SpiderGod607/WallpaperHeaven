@@ -87,6 +87,9 @@ dependencies {
     kapt "androidx.lifecycle:lifecycle-compiler:$lifecycle_version"
     // alternately - if using Java8, use the following instead of lifecycle-compiler
     implementation "androidx.lifecycle:lifecycle-common-java8:$lifecycle_version"
+    implementation "androidx.compose.runtime:runtime:1.0.0-beta06"
+    implementation "androidx.compose.runtime:runtime-livedata:1.0.0-beta06"
+    implementation "androidx.compose.runtime:runtime-rxjava2:1.0.0-beta06"
 
     //Dagger - Hilt
     implementation "com.google.dagger:hilt-android:2.33-beta"
@@ -113,5 +116,10 @@ dependencies {
     implementation "androidx.room:room-ktx:$room_version"
 
     implementation("com.squareup.okhttp3:logging-interceptor:4.9.1")
+
+    implementation "com.airbnb.android:lottie-compose:1.0.0-beta03-1"
+
+    implementation "com.google.accompanist:accompanist-systemuicontroller:0.9.1"
+
 
 }

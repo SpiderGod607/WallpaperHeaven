@@ -5,7 +5,7 @@ import androidx.room.Entity
 import androidx.room.PrimaryKey
 
 
-@Entity(tableName = "wallpaperTable")
+@Entity(tableName = "wallpaperFavTable")
 data class WallpaperEntity(
     @ColumnInfo(name = "id")
     @PrimaryKey(autoGenerate = false)

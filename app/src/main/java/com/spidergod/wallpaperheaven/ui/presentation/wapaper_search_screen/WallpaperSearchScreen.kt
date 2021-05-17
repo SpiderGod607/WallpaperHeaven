@@ -24,10 +24,7 @@ import androidx.compose.ui.window.Dialog
 import androidx.hilt.navigation.compose.hiltNavGraphViewModel
 import androidx.navigation.NavController
 import com.spidergod.wallpaperheaven.R
-import com.spidergod.wallpaperheaven.ui.presentation.common.FilterChips
-import com.spidergod.wallpaperheaven.ui.presentation.common.ThreeChipRow
-import com.spidergod.wallpaperheaven.ui.presentation.common.TwoChipRow
-import com.spidergod.wallpaperheaven.ui.presentation.common.WallpaperList
+import com.spidergod.wallpaperheaven.ui.presentation.common.*
 import com.spidergod.wallpaperheaven.ui.presentation.wallpaper_list_screen.SearchBar
 import com.spidergod.wallpaperheaven.ui.presentation.wallpaper_list_screen.WallpaperListViewModel
 
@@ -43,6 +40,8 @@ fun WallpaperSearchScreen(
         viewModel.searchQuery.value = query
         viewModel.newQuery()
     }
+
+    SystemBarColor(color = MaterialTheme.colors.primary)
 
     val wallpaperList by remember {
         viewModel.wallpaperList
@@ -109,7 +108,9 @@ fun SearchScreenSearchBar(viewModel: WallpaperListViewModel = hiltNavGraphViewMo
                 Image(
                     painter = painterResource(id = R.drawable.filter_icon),
                     contentDescription = "filter Icon",
-                    modifier = Modifier.fillMaxWidth(),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(end = 10.dp),
                 )
             }
         }
@@ -128,7 +129,8 @@ fun FilterDialog(
         }) {
 
             Surface(
-                color = MaterialTheme.colors.primary
+                color = MaterialTheme.colors.primary,
+                modifier = Modifier.clip(RoundedCornerShape(12.dp))
             ) {
                 Column(
                     modifier = Modifier.padding(25.dp)
@@ -249,16 +251,22 @@ fun FilterDialog(
                             viewModel.orderBy.value == it
                         }
                     )
-                    Text(
-                        text = "Apply",
-                        modifier = Modifier
-                            .padding(top = 10.dp, bottom = 5.dp)
-                            .clickable {
-                                viewModel.newQuery()
-                            },
-                        color = Color.White,
-                        textAlign = TextAlign.End,
-                    )
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.End
+                    ) {
+                        Text(
+                            text = "Apply",
+                            modifier = Modifier
+                                .padding(top = 10.dp, bottom = 5.dp)
+                                .clickable {
+                                    viewModel.newQuery()
+                                    viewModel.showSearchFilterDialog.value = false
+                                },
+                            color = Color.White,
+                            textAlign = TextAlign.End,
+                        )
+                    }
                 }
             }
         }

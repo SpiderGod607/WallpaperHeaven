@@ -9,7 +9,9 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -24,8 +26,10 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltNavGraphViewModel
 import androidx.navigation.NavController
 import com.google.accompanist.glide.rememberGlidePainter
+import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import com.spidergod.wallpaperheaven.R
 import com.spidergod.wallpaperheaven.data.local.entity.WallpaperEntity
+import com.spidergod.wallpaperheaven.ui.presentation.common.PaperPlaneLoading
 import com.spidergod.wallpaperheaven.ui.presentation.composeutil.Pager
 import com.spidergod.wallpaperheaven.ui.presentation.composeutil.PagerState
 import com.spidergod.wallpaperheaven.util.ShareLinkWithOtherApps
@@ -43,6 +47,16 @@ fun WallpaperDetailScreen(
     val backColor by remember {
         viewModel.currentBackgroundColor
     }
+    val favWallpaperList by viewModel.allFavWallpaper.observeAsState()
+
+    val systemUiController = rememberSystemUiController()
+    SideEffect {
+        systemUiController.setSystemBarsColor(
+            color = backColor[0],
+            darkIcons = false
+        )
+    }
+
     LazyColumn(
         modifier = Modifier
             .fillMaxSize()
@@ -54,82 +68,131 @@ fun WallpaperDetailScreen(
         item {
             WallpaperPager(wallpaperEntity = wallpaper)
         }
-
-        item {
-            Row {
-                Column {
-                    Spacer(modifier = Modifier.size(10.dp))
-                    Button(
-                        onClick = {
-                            ShareLinkWithOtherApps(
-                                context = context, "Checkout this cool wallpaper I found \n " +
-                                        "WallHeaven link -> ${viewModel.currentSelectedWallpaper?.urlShort} \n" +
-                                        "Source -> ${viewModel.currentSelectedWallpaper?.source}"
-                            )
-                        },
-                        modifier = Modifier
-                            .size(50.dp),
-                        colors = ButtonDefaults.buttonColors(
-                            backgroundColor = Color.Black
-                        )
-
-                    ) {
-                        Image(
-                            painter = painterResource(id = R.drawable.ic_share),
-                            contentDescription = "Share wallpaper",
-                            modifier = Modifier.size(50.dp)
-                        )
-                    }
-                }
-                Spacer(modifier = Modifier.size(10.dp))
-                Button(
-                    onClick = {
-                        handleDownload(
-                            context = context,
-                            fromUrl = viewModel.currentSelectedWallpaper?.urlHigh,
-                            toFilename = viewModel.currentSelectedWallpaper?.urlHigh?.lastPathComponent
-                        )
-                    },
-                    colors = ButtonDefaults.buttonColors(
-                        backgroundColor = Color.White
-                    ),
-                    modifier = Modifier
-                        .size(60.dp)
-                        .clip(shape = CircleShape)
-                        .background(Color.White),
+        if (viewModel.listOfSimilarWallpaper.value.isNotEmpty()) {
+            item {
+                Box(
+                    modifier = Modifier.fillMaxWidth()
                 ) {
-                    Image(
-                        painter = painterResource(id = R.drawable.ic_download),
-                        contentDescription = "Download button",
-                    )
-                }
-                Spacer(modifier = Modifier.size(10.dp))
-                Column {
-                    Spacer(modifier = Modifier.size(10.dp))
-                    Button(
-                        onClick = { viewModel.setWallpaper() },
-                        colors = ButtonDefaults.buttonColors(
-                            backgroundColor = Color.Black,
-                        ),
-                        modifier = Modifier
-                            .size(50.dp)
-                            .clip(shape = CircleShape),
+                    Row(
+                        modifier = Modifier.align(Alignment.Center)
                     ) {
-                        Image(
-                            painter = painterResource(id = R.drawable.ic_set_wallpaper),
-                            contentDescription = "Set wallpaper",
-                            modifier = Modifier
-                                .shadow(
-                                    shape = CircleShape,
-                                    elevation = 0.dp
+                        Column {
+                            Spacer(modifier = Modifier.size(10.dp))
+                            Button(
+                                onClick = {
+                                    ShareLinkWithOtherApps(
+                                        context = context,
+                                        "Checkout this cool wallpaper I found \n " +
+                                                "WallHeaven link -> ${viewModel.currentSelectedWallpaper.value?.urlShort} \n" +
+                                                "Source -> ${viewModel.currentSelectedWallpaper.value?.source}"
+                                    )
+                                },
+                                modifier = Modifier
+                                    .size(50.dp)
+                                    .clip(shape = CircleShape),
+                                colors = ButtonDefaults.buttonColors(
+                                    backgroundColor = Color.Black
                                 )
-                                .fillMaxSize()
-                        )
+
+                            ) {
+                                Image(
+                                    painter = painterResource(id = R.drawable.ic_share),
+                                    contentDescription = "Share wallpaper",
+                                    modifier = Modifier.size(50.dp)
+                                )
+                            }
+                        }
+                        Spacer(modifier = Modifier.size(10.dp))
+                        Button(
+                            onClick = {
+                                handleDownload(
+                                    context = context,
+                                    fromUrl = viewModel.currentSelectedWallpaper.value?.urlHigh,
+                                    toFilename = viewModel.currentSelectedWallpaper.value?.urlHigh?.lastPathComponent
+                                )
+                            },
+                            colors = ButtonDefaults.buttonColors(
+                                backgroundColor = Color.White
+                            ),
+                            modifier = Modifier
+                                .size(60.dp)
+                                .clip(shape = CircleShape)
+                                .background(Color.White),
+                        ) {
+                            Image(
+                                painter = painterResource(id = R.drawable.ic_download),
+                                contentDescription = "Download button",
+                            )
+                        }
+                        Spacer(modifier = Modifier.size(10.dp))
+                        Column {
+                            Spacer(modifier = Modifier.size(10.dp))
+                            Button(
+                                onClick = { viewModel.setWallpaper() },
+                                colors = ButtonDefaults.buttonColors(
+                                    backgroundColor = Color.Black,
+                                ),
+                                modifier = Modifier
+                                    .size(50.dp)
+                                    .clip(shape = CircleShape),
+                            ) {
+                                Image(
+                                    painter = painterResource(id = R.drawable.ic_set_wallpaper),
+                                    contentDescription = "Set wallpaper",
+                                    modifier = Modifier
+                                        .shadow(
+                                            shape = CircleShape,
+                                            elevation = 0.dp
+                                        )
+                                        .fillMaxSize()
+                                )
+                            }
+                        }
+                    }
+
+                    Column(
+                        modifier = Modifier
+                            .align(Alignment.CenterEnd)
+                            .padding(end = 20.dp)
+                    ) {
+                        Spacer(modifier = Modifier.size(10.dp))
+                        Button(
+                            onClick = {
+                                viewModel.addTofav()
+                            },
+                            colors = ButtonDefaults.buttonColors(
+                                backgroundColor = Color.Black,
+                            ),
+                            modifier = Modifier
+                                .size(50.dp)
+                                .clip(shape = CircleShape),
+                        ) {
+
+
+                            Image(
+                                painter = painterResource(
+                                    id = if (favWallpaperList != null && favWallpaperList!!.contains(
+                                            viewModel.currentSelectedWallpaper?.value?.id
+                                        )
+                                    ) R.drawable.ic_fav_fill else R.drawable.ic_fav
+                                ),
+                                contentDescription = "add to fav",
+                                modifier = Modifier
+                                    .shadow(
+                                        shape = CircleShape,
+                                        elevation = 0.dp
+                                    )
+                                    .fillMaxSize()
+                            )
+                        }
                     }
                 }
-
             }
         }
+    }
+
+    if (viewModel.listOfSimilarWallpaper.value.isEmpty() && viewModel.isLoading.value) {
+        PaperPlaneLoading(modifier = Modifier.fillMaxSize())
     }
 
     if (viewModel.showStackBar.value) {
@@ -139,8 +202,8 @@ fun WallpaperDetailScreen(
             }
         )
     }
-
 }
+
 
 @Composable
 fun WallpaperPager(
@@ -150,6 +213,7 @@ fun WallpaperPager(
     val wallpapers by remember {
         viewModel.getSimilarWallpaper(wallpaperEntity)
     }
+
 
     if (wallpapers.isNotEmpty()) {
         val pageState: PagerState = run {
@@ -173,7 +237,7 @@ fun WallpaperPager(
 fun WallpaperPagerItem(
     wallpaperEntity: WallpaperEntity,
     isSelected: Boolean,
-    viewModel: WallpaperDetailViewModel = hiltNavGraphViewModel()
+    viewModel: WallpaperDetailViewModel = hiltNavGraphViewModel(),
 ) {
     val animateHeight = animateDpAsState(if (isSelected) 645.dp else 360.dp).value
     val animateWidth = animateDpAsState(targetValue = if (isSelected) 340.dp else 320.dp).value
@@ -184,7 +248,7 @@ fun WallpaperPagerItem(
             Color(android.graphics.Color.parseColor(wallpaperEntity.color)),
             Color(android.graphics.Color.BLACK)
         )
-        viewModel.currentSelectedWallpaper = wallpaperEntity
+        viewModel.currentSelectedWallpaper.value = wallpaperEntity
     }
 
     Card(

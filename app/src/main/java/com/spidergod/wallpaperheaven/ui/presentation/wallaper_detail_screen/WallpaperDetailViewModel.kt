@@ -17,10 +17,11 @@ import javax.inject.Inject
 
 @HiltViewModel
 class WallpaperDetailViewModel @Inject constructor(
-    val wallpaperRepository: WallpaperRepository,
-    val setWallpaperUtil: SetWallpaperUtil
+    private val wallpaperRepository: WallpaperRepository,
+    private val setWallpaperUtil: SetWallpaperUtil
 ) :
     ViewModel() {
+
     val listOfSimilarWallpaper = mutableStateOf<List<WallpaperEntity>>(mutableListOf())
     val isError = mutableStateOf("")
     val currentBackgroundColor = mutableStateOf(
@@ -29,25 +30,23 @@ class WallpaperDetailViewModel @Inject constructor(
             Color(android.graphics.Color.BLACK)
         )
     )
-
-    var currentSelectedWallpaper: WallpaperEntity? = null
-
+    val isLoading = mutableStateOf(false)
+    var currentSelectedWallpaper = mutableStateOf<WallpaperEntity?>(null)
 
     fun getSimilarWallpaper(wallpaperEntity: WallpaperEntity): MutableState<List<WallpaperEntity>> {
-
         viewModelScope.launch {
+            isLoading.value = true
             currentBackgroundColor.value =
                 listOf(
                     Color(android.graphics.Color.parseColor(wallpaperEntity.color)),
                     Color(android.graphics.Color.BLACK)
                 )
+            val arrayList = ArrayList<WallpaperEntity>()
             //listOfSimilarWallpaper.value.add(wallpaperEntity)
             val result = wallpaperRepository.getSimilarWallpaper(wallpaperEntity.id)
 
             when (result) {
                 is Resource.Success -> {
-
-                    val arrayList = ArrayList<WallpaperEntity>()
                     arrayList.apply {
                         add(wallpaperEntity)
                         addAll(
@@ -67,7 +66,7 @@ class WallpaperDetailViewModel @Inject constructor(
                     isError.value = result.message ?: "Unknown error"
                 }
             }
-
+            isLoading.value = false
         }
         return listOfSimilarWallpaper
     }
@@ -80,7 +79,7 @@ class WallpaperDetailViewModel @Inject constructor(
             setWallpaperMessage.value = "Setting Wallpaper please wait.."
             showStackBar.value = true
             val setRes =
-                currentSelectedWallpaper?.urlHigh?.let { setWallpaperUtil.setWallpaper(it) }
+                currentSelectedWallpaper.value?.urlHigh?.let { setWallpaperUtil.setWallpaper(it) }
             if (setRes == true) {
                 setWallpaperMessage.value = "Wallpaper has been set"
             } else {
@@ -88,7 +87,18 @@ class WallpaperDetailViewModel @Inject constructor(
             }
             showStackBar.value = false
         }
-
     }
 
+    val allFavWallpaper = wallpaperRepository.getAllFavLIstNames()
+
+    //add to fav
+    fun addTofav() {
+        viewModelScope.launch {
+            if (allFavWallpaper.value?.contains(currentSelectedWallpaper.value?.id) == true ?: false) {
+                currentSelectedWallpaper.value?.let { wallpaperRepository.removeFromFav(it) }
+            } else {
+                currentSelectedWallpaper.value?.let { wallpaperRepository.addToFav(it) }
+            }
+        }
+    }
 }
