@@ -3,3 +3,4 @@ WallpaperHeaven is a wallpaper app which is build using jetpack compose and uses
 
 ![screenshots of app](./screenshots/screenshot.png)
 
+<img src="screenshots/appRecording.gif"/>
